@@ -3,14 +3,15 @@ plugins {
     kotlin("plugin.spring") version "1.9.25"
     id("org.springframework.boot") version "3.4.5"
     id("io.spring.dependency-management") version "1.1.7"
+    id("com.google.cloud.tools.jib") version "3.4.5"
 }
 
 group = "nl.cqit.tools"
-version = "0.0.1-SNAPSHOT"
+version = project.findProperty("version")?.takeUnless { it == "unspecified" }?.toString() ?: "0.0.1-SNAPSHOT"
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
+        languageVersion = JavaLanguageVersion.of(21)
     }
 }
 
@@ -50,4 +51,35 @@ kotlin {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+jib {
+    from {
+        image = "openjdk:21-jdk-slim"
+        platforms {
+            platform {
+                architecture= "amd64"
+                os = "linux"
+            }
+            platform {
+                architecture = "arm64"
+                os = "linux"
+            }
+        }
+    }
+    to {
+        image = "${System.getenv("DOCKER_HOST")}/cqit/${rootProject.name}"
+        tags = setOf("latest", "$version")
+        auth {
+            username = System.getenv("DOCKER_USERNAME")
+            password = System.getenv("DOCKER_PASSWORD")
+        }
+    }
+    container {
+        mainClass = "nl.cqit.tools.buildnumbergenerator.BuildNumberGeneratorApplicationKt"
+        ports = listOf("8080")
+        jvmFlags = listOf("-Xms512m", "-Xmx1024m")
+        creationTime = "USE_CURRENT_TIMESTAMP"
+        extraClasspath
+    }
 }
