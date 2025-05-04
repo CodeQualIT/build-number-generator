@@ -1,0 +1,4 @@
+namespace: build-number-generator-s
+resources:
+  - ../base
+  - namespace.yaml

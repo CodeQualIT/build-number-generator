@@ -47,23 +47,23 @@ jobs:
     outputs:
       tag: ${{ steps.export_build_env_vars.outputs.TAG }}
 
-#  deploy-to-prod:
-#    needs: build
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Checkout code
-#        uses: actions/checkout@v3
-#
-#      - name: Import environment variables
-#        shell: bash
-#        id: import_deploy-to-prod_env_vars
-#        run: |
-#          echo "TAG=${{ needs.build.outputs.tag }}" >> $GITHUB_ENV
-#
-#      - name: Generate and Deploy to testing
-#        uses: ./.github/actions/generate-and-deploy-k8s-manifest
-#        with:
-#          config-file-name: 'build-number-generator.yaml'
-#          config-repository-base: 'CodeQualIT/cqit-config-'
-#          target-environment: 'production'
-#          github-token: ${{ secrets.CONFIG_REPO_TOKEN }}
+  deploy-to-prod:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Import environment variables
+        shell: bash
+        id: import_deploy-to-prod_env_vars
+        run: |
+          echo "TAG=${{ needs.build.outputs.tag }}" >> $GITHUB_ENV
+
+      - name: Generate and Deploy to testing
+        uses: ./.github/actions/generate-and-deploy-k8s-manifest
+        with:
+          config-file-name: 'build-number-generator.yaml'
+          config-repository-base: 'CodeQualIT/cqit-config-'
+          target-environment: 'production'
+          github-token: ${{ secrets.CONFIG_REPO_TOKEN }}

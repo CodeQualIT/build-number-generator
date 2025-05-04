@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: build-number-generator
+  labels:
+    app: build-number-generator
+    # noinspection KubernetesUnknownValues
+    app.kubernetes.io/version: $TAG
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: build-number-generator
+  template:
+    metadata:
+      labels:
+        app: build-number-generator
+        # noinspection KubernetesUnknownValues
+        app.kubernetes.io/version: $TAG
+    spec:
+      serviceAccountName: build-number-generator-sa
+      imagePullSecrets:
+        - name: cqit-docker-private-cred
+      containers:
+        - name: build-number-generator
+          # noinspection KubernetesUnknownValues
+          image: private.registry.cqit.nl/cqit/build-number-generator:$TAG
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: $TARGET_ENVIRONMENT
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "1024Mi"
+              cpu: "1000m"
