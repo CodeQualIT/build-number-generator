@@ -1,0 +1,27 @@
+name: Generate Build Number
+description: Generates a date-specific build number and sets it as environment variables.
+
+inputs: {}
+
+runs:
+  using: composite
+  steps:
+    - name: Extract version and determine deployment type
+      id: generate_version
+      shell: bash
+      run: |
+        VERSION=$(./gradlew properties -q | grep "^version:" | awk '{print $2}')
+        echo "Extracted version: $VERSION"
+        if [[ "$VERSION" == *-SNAPSHOT ]]; then
+          CLEAN_VERSION=${VERSION%-SNAPSHOT}
+          DEPLOYMENT_TYPE=snapshot
+          echo "Deployment type: snapshot"
+        else
+          CLEAN_VERSION=$VERSION
+          DEPLOYMENT_TYPE=release
+          echo "Deployment type: release"
+        fi
+        TAG="${CLEAN_VERSION}-${{ env.DATE }}.${{ env.BUILD_NUMBER }}"
+        echo "Generated tag: $TAG"
+        echo "TAG=$TAG" >> $GITHUB_ENV
+        echo "DEPLOYMENT_TYPE=$DEPLOYMENT_TYPE" >> $GITHUB_ENV

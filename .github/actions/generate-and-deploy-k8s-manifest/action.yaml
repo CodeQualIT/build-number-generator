@@ -1,0 +1,89 @@
+name: Generate and deploy Kubernetes Manifest
+description: Generates a Kubernetes manifest file based on the provided inputs and deploys it to the GitOps repo
+
+inputs:
+  config-repository-base:
+    description: The GitOps repository to push the generated manifest to
+    required: true
+  config-file-name:
+    description: The name of the generated manifest file
+    required: true
+  target-environment:
+    description: The environment that will be deployed to
+    required: true
+    default: 'testing'
+  github-token:
+    description: The github token to be used for pushing to the config repository
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Install kustomize
+      shell: bash
+      id: install_kustomize
+      run: |
+        echo "Installing kustomize..."
+        KUSTOMIZE_VERSION=$(curl -s https://api.github.com/repos/kubernetes-sigs/kustomize/releases/latest | jq -r '.tag_name')
+        echo "Latest kustomize version: $KUSTOMIZE_VERSION"
+        KUSTOMIZE_VERSION_URL_ENCODED=$(echo "$KUSTOMIZE_VERSION" | sed 's|/|%2F|g')
+        KUSTOMIZE_VERSION_FILENAME=$(echo "$KUSTOMIZE_VERSION" | sed 's|/|_|g')
+        curl -LO "https://github.com/kubernetes-sigs/kustomize/releases/download/${KUSTOMIZE_VERSION_URL_ENCODED}/${KUSTOMIZE_VERSION_FILENAME}_linux_amd64.tar.gz"
+        tar -xzf ${KUSTOMIZE_VERSION_FILENAME}_linux_amd64.tar.gz
+        sudo mv kustomize /usr/local/bin/
+        echo "Kustomize installed successfully."
+        rm ${KUSTOMIZE_VERSION_FILENAME}_linux_amd64.tar.gz
+
+    - name: Substitute environment variables in Kustomize files
+      shell: bash
+      id: kustomize_replace_env_vars
+      run: |
+        echo "Substituting environment variables in Deployment file..."
+        export TAG=${{ env.TAG }}
+        export TARGET_ENVIRONMENT=${{ inputs.target-environment }}
+        echo "Using TAG: $TAG"
+        echo "Using TARGET_ENVIRONMENT: $TARGET_ENVIRONMENT"
+        envsubst < k8s/base/deployment.yaml > k8s/base/deployment.yaml.tmp
+        mv k8s/base/deployment.yaml.tmp k8s/base/deployment.yaml
+        echo "Environment variables substituted successfully."
+        echo "Generated deployment.yaml:"
+        cat k8s/base/deployment.yaml
+
+    - name: Configure Git
+      shell: bash
+      id: set_git_user
+      run: |
+        echo "Configuring Git user..."
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+
+    - name: Checkout ${{inputs.target-environment}} config repository
+      uses: actions/checkout@v3
+      with:
+        repository: '${{inputs.config-repository-base}}${{inputs.target-environment}}'
+        path: 'config/${{inputs.target-environment}}'
+        ref: main
+        token: '${{ inputs.github-token }}'
+
+    - name: Deploy to test environment
+      shell: bash
+      id: generate_manifest
+      run: |
+        echo "Generating Kubernetes manifest for environment: ${{ inputs.target-environment }}..."
+        kustomize build k8s/${{inputs.target-environment}} > config/${{inputs.target-environment}}/${{inputs.config-file-name}}
+        echo "Generated manifest:"
+        cat config/${{inputs.target-environment}}/${{inputs.config-file-name}}
+
+    - name: Commit and push to config repo
+      shell: bash
+      id: commit_and_push_config
+      run: |
+        echo "Committing and pushing changes to config repository..."
+        cd config/${{inputs.target-environment}}
+        git add ${{inputs.config-file-name}}
+        git commit -m "Update ${{inputs.config-file-name}} for ${{ env.TAG }}"
+        git push
+        echo "Changes pushed successfully."
+        cd -
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}

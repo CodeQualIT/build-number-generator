@@ -1,0 +1,45 @@
+name: Build and push Docker image
+description: Setup Gradle for the build process.
+
+inputs:
+  docker-username:
+    description: Docker username for authentication.
+    required: true
+    default: private-deployer
+  docker-password:
+    description: Docker password for authentication.
+    required: true
+  snapshot-docker-host:
+    description: Docker host for snapshot deployment.
+    required: true
+    default: snapshots.private.registry.cqit.nl
+  release-docker-host:
+    description: Docker host for release deployment.
+    required: true
+    default: releases.private.registry.cqit.nl
+runs:
+  using: composite
+  steps:
+    - name: Determine the docker host from the deployment type
+      id: docker_host
+      shell: bash
+      run: |
+        echo "Deployment type: ${{ env.DEPLOYMENT_TYPE }}"
+        if [[ "${{ env.DEPLOYMENT_TYPE }}" == "snapshot" ]]; then
+          echo "Using snapshot Docker host: ${{ inputs.snapshot-docker-host }}"
+          echo "DOCKER_HOST=${{ inputs.snapshot-docker-host }}" >> $GITHUB_ENV
+        elif [[ "${{ env.DEPLOYMENT_TYPE }}" == "release" ]]; then
+          echo "Using release Docker host: ${{ inputs.release-docker-host }}"
+          echo "DOCKER_HOST=${{ inputs.release-docker-host }}" >> $GITHUB_ENV
+        else
+          echo "Invalid deployment type: ${{ env.DEPLOYMENT_TYPE }}"
+          exit 1
+        fi
+
+    - name: Build and push Docker image
+      id: build_and_push
+      shell: bash
+      env:
+        DOCKER_USERNAME: ${{ inputs.docker-username }}
+        DOCKER_PASSWORD: ${{ inputs.docker-password }}
+      run: ./gradlew jib -Pversion=${{ env.TAG }}

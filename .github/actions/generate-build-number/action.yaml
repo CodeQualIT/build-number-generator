@@ -1,0 +1,67 @@
+name: Generate Build Number
+description: Generates a date-specific build number and sets it as environment variables.
+
+inputs:
+  build-number-path:
+    description: Path to store the build number file.
+    required: true
+    default: ~/build-number
+
+runs:
+  using: composite
+  steps:
+    - name: Set the date environment variable
+      id: get_date
+      shell: bash
+      run: |
+        DATE=$(date +%Y%m%d)
+        echo "DATE=$DATE" >> $GITHUB_ENV
+        echo "Date saved to environment variables."
+
+    - name: Cache build number
+      uses: actions/cache@v3
+      with:
+        path: ${{ inputs.build-number-path }}
+        key: build-number-cache-${{ github.run_id }}
+        restore-keys: build-number-cache-
+
+    - name: Generate date-specific build number directory if needed
+      id: create_build_number_dir
+      shell: bash
+      run: |
+        echo "Working directory: $(pwd)"
+        echo "Creating build number directory if needed."
+        mkdir -p ${{ inputs.build-number-path }}
+
+    - name: Generate date-specific build number
+      id: generate_build_number
+      shell: bash
+      run: |
+        cd ${{ inputs.build-number-path }}
+        echo "Changed working directory: $(pwd)"
+        echo "Generated date: $DATE"
+        echo "Build file path: ${{ inputs.build-number-path }}/$DATE"
+        if [ -f "$DATE" ]; then
+          echo "Build file exists. Reading current build number."
+          BUILD_NUMBER=$(cat "$DATE")
+          echo "Current build number: $BUILD_NUMBER"
+          BUILD_NUMBER=$((BUILD_NUMBER + 1))
+          echo "Incremented build number: $BUILD_NUMBER"
+        else
+          echo "Build file does not exist. Starting with build number 1."
+          BUILD_NUMBER=1
+        fi
+        echo "Remove old build number files."
+        rm -f ./*
+        echo "Create new build number file."
+        echo "$BUILD_NUMBER" > "$DATE"
+        echo "Build number saved to file"
+        cd -
+        echo "Changed working directory: $(pwd)"
+        echo "BUILD_NUMBER=$BUILD_NUMBER" >> $GITHUB_ENV
+        echo "Build number saved to environment variables."
+    - name: Save updated cache
+      uses: actions/cache/save@v3
+      with:
+        path: ${{ inputs.build-number-path }}
+        key: build-number-cache-${{ github.run_id }}
