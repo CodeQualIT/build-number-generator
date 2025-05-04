@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "nl.cqit.tools"
-version = project.findProperty("version")?.takeUnless { it == "unspecified" }?.toString() ?: "0.0.1-SNAPSHOT"
+version = project.findProperty("version")?.takeUnless { it == "unspecified" }?.toString() ?: "1.0.0"
 
 java {
     toolchain {

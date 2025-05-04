@@ -60,7 +60,7 @@ jobs:
         run: |
           echo "TAG=${{ needs.build.outputs.tag }}" >> $GITHUB_ENV
 
-      - name: Generate and Deploy to testing
+      - name: Generate and Deploy to production
         uses: ./.github/actions/generate-and-deploy-k8s-manifest
         with:
           config-file-name: 'build-number-generator.yaml'
