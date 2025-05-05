@@ -2,3 +2,4 @@ namespace: build-number-generator-p
 resources:
   - ../base
   - namespace.yaml
+  - ingress.yaml
