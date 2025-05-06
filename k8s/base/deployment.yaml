@@ -30,6 +30,8 @@ spec:
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: $TARGET_ENVIRONMENT
+            - name: ROCKSDB_PATH
+              value: /data
           resources:
             requests:
               memory: "128Mi"
@@ -37,3 +39,10 @@ spec:
             limits:
               memory: "1024Mi"
               cpu: "1000m"
+          volumeMounts:
+            - name: data-volume
+              mountPath: /data
+      volumes:
+        - name: data-volume
+          persistentVolumeClaim:
+            claimName: build-number-generator-pvc

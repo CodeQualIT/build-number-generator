@@ -1,4 +1,5 @@
 resources:
   - deployment.yaml
+  - pvc.yaml
   - service.yaml
   - service-account.yaml

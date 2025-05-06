@@ -1,7 +1,9 @@
 package nl.cqit.tools.buildnumbergenerator
 
+import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import io.mockk.mockkStatic
+import nl.cqit.tools.buildnumbergenerator.storage.BuildNumbers
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
@@ -17,8 +19,22 @@ private val DATE = LocalDate.of(2023, 10, 1)
 
 @WebMvcTest(BuildNumberController::class)
 class BuildNumberControllerTest(@Autowired val mockMvc: MockMvc) {
+
+    @MockkBean
+    private lateinit var buildNumbers: BuildNumbers
+
+    private var buildNumbersMap: MutableMap<String, DatedBuildNumber> = mutableMapOf()
+
     @Test
     fun getBuildNumber() {
+        every { buildNumbers.get(any()) } answers {
+            buildNumbersMap[firstArg()]
+        }
+        every { buildNumbers.set(any(), any()) } answers {
+            buildNumbersMap[firstArg()] = secondArg()
+            secondArg()
+        }
+
         mockkStatic(::clock) {
             every { clock() } returns Clock.fixed(
                 DATE.atStartOfDay(ZoneOffset.UTC).toInstant(),
