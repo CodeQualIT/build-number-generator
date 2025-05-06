@@ -1,12 +1,13 @@
 package nl.cqit.tools.buildnumbergenerator.config
 
+import jakarta.annotation.PreDestroy
 import org.rocksdb.Options
 import org.rocksdb.RocksDB
 import org.rocksdb.RocksDBException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import jakarta.annotation.PreDestroy
+import java.nio.file.Files.createDirectories
 import java.nio.file.Paths
 import kotlin.io.path.absolute
 
@@ -26,10 +27,11 @@ class RocksDbConfig(@Value("\${rocksdb.path}") private val rocksDbPath: String) 
             setCreateIfMissing(true)
             // Add other RocksDB options as needed
         }
-        val absolutePath = Paths.get(rocksDbPath).absolute().toString()
+        val absolutePath = Paths.get(rocksDbPath).absolute()
         try {
-            log.info("Trying to open RocksDB at $absolutePath...")
-            rocksDB = RocksDB.open(options, absolutePath)
+            log.info("Trying to open RocksDB at $absolutePath ...")
+            createDirectories(absolutePath)
+            rocksDB = RocksDB.open(options, absolutePath.toString())
             log.info("RocksDB opened successfully at $absolutePath")
             return rocksDB
         } catch (e: RocksDBException) {
