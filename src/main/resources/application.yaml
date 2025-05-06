@@ -1,1 +1,9 @@
-spring.application.name: build-number-generator
+spring:
+  application.name: build-number-generator
+
+rocksdb:
+  path: out/rocksdb
+
+logging:
+  level:
+    org.springframework.cache: TRACE

@@ -1,5 +1,6 @@
 package nl.cqit.tools.buildnumbergenerator
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import java.time.Clock
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -11,6 +12,7 @@ data class DatedBuildNumber(
 ) {
     fun buildId(): String = "$buildDate.$buildNumber"
 
+    @JsonIgnore
     fun getNext(): DatedBuildNumber {
         val now = LocalDate.now(clock())
         return if (buildDate == now) {

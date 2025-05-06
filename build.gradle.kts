@@ -26,10 +26,16 @@ repositories {
 }
 
 dependencies {
+    implementation("org.springframework.boot:spring-boot-starter-aop")
+    implementation("org.springframework.boot:spring-boot-starter-cache")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.retry:spring-retry")
+
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation("org.rocksdb:rocksdbjni:7.10.2")
 
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 
