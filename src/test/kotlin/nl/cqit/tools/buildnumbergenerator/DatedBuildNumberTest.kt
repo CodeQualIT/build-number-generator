@@ -15,7 +15,7 @@ class DatedBuildNumberTest {
     @Test
     fun buildId() {
         val buildNumber = DatedBuildNumber("test", DATE, 42)
-        assertThat(buildNumber.buildId()).isEqualTo("2023-10-01.42")
+        assertThat(buildNumber.buildId()).isEqualTo("20231001.42")
     }
 
     @Test

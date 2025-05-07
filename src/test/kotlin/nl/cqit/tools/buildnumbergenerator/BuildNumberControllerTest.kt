@@ -43,16 +43,16 @@ class BuildNumberControllerTest(@Autowired val mockMvc: MockMvc) {
 
             mockMvc.perform(get("/build-number/test"))
                 .andExpect(status().isOk)
-                .andExpect(content().string("2023-10-01.1"))
+                .andExpect(content().string("20231001.1"))
             mockMvc.perform(get("/build-number/test"))
                 .andExpect(status().isOk)
-                .andExpect(content().string("2023-10-01.2"))
+                .andExpect(content().string("20231001.2"))
             mockMvc.perform(get("/build-number/test2"))
                 .andExpect(status().isOk)
-                .andExpect(content().string("2023-10-01.1"))
+                .andExpect(content().string("20231001.1"))
             mockMvc.perform(get("/build-number/test"))
                 .andExpect(status().isOk)
-                .andExpect(content().string("2023-10-01.3"))
+                .andExpect(content().string("20231001.3"))
 
             every { clock() } returns Clock.fixed(
                 DATE.plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant(),
@@ -61,7 +61,7 @@ class BuildNumberControllerTest(@Autowired val mockMvc: MockMvc) {
 
             mockMvc.perform(get("/build-number/test"))
                 .andExpect(status().isOk)
-                .andExpect(content().string("2023-10-02.1"))
+                .andExpect(content().string("20231002.1"))
         }
     }
 }

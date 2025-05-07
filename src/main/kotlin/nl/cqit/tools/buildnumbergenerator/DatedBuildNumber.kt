@@ -4,13 +4,14 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import java.time.Clock
 import java.time.LocalDate
 import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 
 data class DatedBuildNumber(
     val applicationName: String,
     val buildDate: LocalDate,
     val buildNumber: Int,
 ) {
-    fun buildId(): String = "$buildDate.$buildNumber"
+    fun buildId(): String = "${buildDate.format(DateTimeFormatter.BASIC_ISO_DATE)}.$buildNumber"
 
     @JsonIgnore
     fun getNext(): DatedBuildNumber {
