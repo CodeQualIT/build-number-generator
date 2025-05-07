@@ -55,6 +55,15 @@ kotlin {
     }
 }
 
+tasks.processResources {
+    filesMatching("application.yaml") {
+        expand(
+            "applicationVersion" to version,
+            "javaVersion" to JavaVersion.current().toString(),
+        )
+    }
+}
+
 tasks.withType<Test> {
     useJUnitPlatform()
 }
@@ -64,7 +73,7 @@ jib {
         image = "openjdk:21-jdk-slim"
         platforms {
             platform {
-                architecture= "amd64"
+                architecture = "amd64"
                 os = "linux"
             }
             platform {

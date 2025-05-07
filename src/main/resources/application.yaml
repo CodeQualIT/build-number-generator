@@ -1,5 +1,9 @@
 spring:
-  application.name: build-number-generator
+  application:
+    name: build-number-generator
+    version: ${applicationVersion}
+java:
+  version: ${javaVersion}
 
 rocksdb:
   path: out/rocksdb
